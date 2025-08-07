@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1-1 單字聽力測驗</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: auto;
+      text-align: center;
+      padding: 30px 15px;
+    }
+    #logo {
+      width: 150px;
+      max-width: 80%;
+      margin-bottom: 10px;
+    }
+    #game-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    #question-number {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    button {
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 16px;
+      display: block;
+    }
+    .choice-btn {
+      width: 100%;
+      max-width: 400px;
+      margin: 10px auto;
+    }
+    .hidden {
+      display: none;
+    }
+    #nickname {
+      padding: 8px;
+      font-size: 16px;
+      width: 80%;
+      max-width: 300px;
+      margin-top: 10px;
+    }
+    audio {
+      width: 100%;
+      max-width: 500px;
+      margin: 20px 0;
+    }
+    .note {
+      font-size: 14px;
+      color: #888;
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+  <img src="logo.png" alt="Logo" id="logo" />
+  <div id="game-title">1-1 單字聽力測驗</div>
+  <p id="question-number">第 1 題 / 共 15 題</p>
+  <audio id="audio" controls></audio>
+  <div id="choices"></div>
+  <button id="next-btn" disabled>下一題</button>
+
+  <div id="result" class="hidden">
+    <h2>🎯 測驗完成！</h2>
+    <p id="score-text"></p>
+    <p id="pass-fail"></p>
+    <input type="text" id="nickname" placeholder="請輸入姓名＋生日( 範例：王小明0828 )" />
+    <p class="note">姓名＋生日 範例：王小明0828</p>
+    <p class="note">請回傳合格成績</p>
+    <p id="submit-time" class="note"></p>
+    <br />
+    <button id="submit-btn" onclick="submitToGoogle()">提交成績</button>
+    <button onclick="location.reload()">重新開始</button>
+  </div>
+
+  <script>
+    const gameTitle = "1-1 單字聽力測驗";
+
+    const questions = [
+      { word: "ㅏ", audio: "audio/a.mp3", choices: ["ㅏ", "ㅓ", "ㅜ"] },
+      { word: "ㅓ", audio: "audio/eo.mp3", choices: ["ㅓ", "ㅏ", "ㅗ"] },
+      { word: "ㅗ", audio: "audio/o.mp3", choices: ["ㅗ", "ㅜ", "ㅓ"] },
+      { word: "ㅜ", audio: "audio/u.mp3", choices: ["ㅜ", "ㅗ", "ㅡ"] },
+      { word: "ㅡ", audio: "audio/eu.mp3", choices: ["ㅡ", "ㅓ", "ㅜ"] },
+      { word: "ㅑ", audio: "audio/ya.mp3", choices: ["ㅑ", "ㅕ", "ㅛ"] },
+      { word: "ㅕ", audio: "audio/yeo.mp3", choices: ["ㅕ", "ㅛ", "ㅑ"] },
+      { word: "ㅛ", audio: "audio/yo.mp3", choices: ["ㅛ", "ㅠ", "ㅕ"] },
+      { word: "ㅠ", audio: "audio/yu.mp3", choices: ["ㅠ", "ㅜ", "ㅣ"] },
+      { word: "ㅣ", audio: "audio/i.mp3", choices: ["ㅣ", "ㅡ", "ㅑ"] },
+      { word: "오이", audio: "audio/cucumber.mp3", choices: ["오이", "우이", "요이"] },
+      { word: "여우", audio: "audio/fox.mp3", choices: ["여우", "여유", "야유"] },
+      { word: "이유", audio: "audio/reason.mp3", choices: ["이유", "이요", "이여"] },
+      { word: "어여", audio: "audio/hurry.mp3", choices: ["어여", "오여", "오요"] },
+      { word: "우유", audio: "audio/milk.mp3", choices: ["우유", "우요", "어유"] }
+    ];
+
+    let shuffledQuestions = [...questions].sort(() => 0.5 - Math.random());
+    let current = 0;
+    let correct = 0;
+
+    const audio = document.getElementById("audio");
+    const choicesDiv = document.getElementById("choices");
+    const nextBtn = document.getElementById("next-btn");
+    const questionNum = document.getElementById("question-number");
+
+    function loadQuestion() {
+      nextBtn.disabled = true;
+      questionNum.textContent = `第 ${current + 1} 題 / 共 ${shuffledQuestions.length} 題`;
+      const q = shuffledQuestions[current];
+      audio.src = q.audio;
+
+      choicesDiv.innerHTML = "";
+      q.choices.sort(() => 0.5 - Math.random()).forEach((choice) => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.className = "choice-btn";
+        btn.onclick = () => {
+          if (choice === q.word) correct++;
+          nextBtn.disabled = false;
+          document.querySelectorAll(".choice-btn").forEach((b) => (b.disabled = true));
+          btn.style.backgroundColor = choice === q.word ? "#8f8" : "#f88";
+        };
+        choicesDiv.appendChild(btn);
+      });
+    }
+
+    nextBtn.onclick = () => {
+      current++;
+      if (current < shuffledQuestions.length) {
+        loadQuestion();
+      } else {
+        showResult();
+      }
+    };
+
+    function showResult() {
+      audio.classList.add("hidden");
+      choicesDiv.classList.add("hidden");
+      nextBtn.classList.add("hidden");
+      questionNum.classList.add("hidden");
+      document.getElementById("result").classList.remove("hidden");
+
+      const percent = Math.round((correct / shuffledQuestions.length) * 100);
+      document.getElementById("score-text").textContent = `你的分數是 ${percent}% (${correct} / ${shuffledQuestions.length})`;
+
+      const passFailText = document.getElementById("pass-fail");
+      const submitBtn = document.getElementById("submit-btn");
+
+      if (percent >= 80) {
+        passFailText.textContent = "🎉 成績合格！";
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = "1";
+      } else {
+        passFailText.textContent = "❌ 成績不合格";
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = "0.5";
+      }
+    }
+
+    function submitToGoogle() {
+      const nickname = document.getElementById("nickname").value.trim();
+      if (!nickname) {
+        alert("請輸入暱稱");
+        return;
+      }
+
+      const score = Math.round((correct / shuffledQuestions.length) * 100);
+      const now = new Date();
+      const time = now.toLocaleString("zh-TW");
+      const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+      const weekday = weekdays[now.getDay()];
+
+      const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSd8KhDu_lq6g4aPzkLaNYUUVG9P0E9cRT1R2WVDIkkfFh7WxA/formResponse";
+
+      const formData = new FormData();
+      formData.append("entry.1082970818", nickname);
+      formData.append("entry.851626887", score);
+      formData.append("entry.498226528", time);
+      formData.append("entry.532888754", weekday);
+      formData.append("entry.1110600272", gameTitle);
+
+      fetch(formURL, {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      })
+        .then(() => {
+          const nowText = `${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours()}時${now.getMinutes()}分${now.getSeconds()}秒 已完成回傳`;
+          document.getElementById("submit-time").textContent = nowText;
+
+          alert("✅ 提交成功!!可重複測驗");
+        })
+        .catch(() => {
+          alert("❌ 回傳失敗，請稍後再試");
+        });
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>
